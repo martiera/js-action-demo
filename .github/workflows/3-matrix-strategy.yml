@@ -1,0 +1,161 @@
+name: Matrix Strategy Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  matrix-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+        greeting-type: ['input', 'env']
+        name: ['John Doe', 'Jane Smith']
+        include:
+          - greeting-type: 'input'
+            expected: 'Hello {name}!'
+          - greeting-type: 'env'
+            greeting-format: 'Hi {name} from {repo}!'
+            expected: 'Hi {name} from js-action-demo!'
+
+    name: Node ${{ matrix.node-version }} with ${{ matrix.greeting-type }} for ${{ matrix.name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      # Test with input variables
+      - name: Test with input variables
+        if: matrix.greeting-type == 'input'
+        id: input-test
+        uses: ./
+        with:
+          user-name: ${{ matrix.name }}
+          use-env-vars: 'false'
+
+      # Test with environment variables
+      - name: Test with environment variables
+        if: matrix.greeting-type == 'env'
+        id: env-test
+        uses: ./
+        with:
+          use-env-vars: 'true'
+        env:
+          USER_NAME: ${{ matrix.name }}
+          GREETING_FORMAT: ${{ matrix.greeting-format }}
+
+      # Verify the results
+      - name: Verify greeting for input test
+        if: matrix.greeting-type == 'input'
+        run: |
+          EXPECTED="${{ matrix.expected }}"
+          ACTUAL="${{ steps.input-test.outputs.greeting }}"
+          EXPECTED_GREETING="${EXPECTED/\{name\}/${{ matrix.name }}}"
+          
+          echo "Expected: $EXPECTED_GREETING"
+          echo "Actual: $ACTUAL"
+          
+          if [[ "$ACTUAL" == "$EXPECTED_GREETING" ]]; then
+            echo "✅ Greeting matches expected value"
+          else
+            echo "❌ Greeting does not match expected value"
+            exit 1
+          fi
+
+      - name: Verify greeting for env test
+        if: matrix.greeting-type == 'env'
+        run: |
+          EXPECTED="${{ matrix.expected }}"
+          ACTUAL="${{ steps.env-test.outputs.greeting }}"
+          EXPECTED_GREETING="${EXPECTED/\{name\}/${{ matrix.name }}}"
+          
+          echo "Expected: $EXPECTED_GREETING"
+          echo "Actual: $ACTUAL"
+          
+          if [[ "$ACTUAL" == "$EXPECTED_GREETING" ]]; then
+            echo "✅ Greeting matches expected value"
+          else
+            echo "❌ Greeting does not match expected value"
+            exit 1
+          fi
+
+  validation-tests:
+    runs-on: ubuntu-latest
+    name: Test input validation
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      # Test empty name validation
+      - name: Test empty name validation
+        id: empty-name-test
+        continue-on-error: true
+        uses: ./
+        with:
+          user-name: ""
+
+      - name: Verify empty name error
+        run: |
+          if [[ "${{ steps.empty-name-test.outcome }}" == "failure" ]]; then
+            echo "✅ Empty name validation worked as expected"
+          else
+            echo "❌ Empty name validation failed - should have errored"
+            exit 1
+          fi
+
+      # Test too long name validation
+      - name: Test too long name validation
+        id: long-name-test
+        continue-on-error: true
+        uses: ./
+        with:
+          user-name: "This is an extremely long name that should exceed the 50 character limit that we have set in our validation logic for this action which makes it invalid"
+
+      - name: Verify long name error
+        run: |
+          if [[ "${{ steps.long-name-test.outcome }}" == "failure" ]]; then
+            echo "✅ Long name validation worked as expected"
+          else
+            echo "❌ Long name validation failed - should have errored"
+            exit 1
+          fi
+
+      # Test missing env var when use-env-vars is true
+      - name: Test missing env var validation
+        id: missing-env-test
+        continue-on-error: true
+        uses: ./
+        with:
+          use-env-vars: 'true'
+        # Deliberately not setting USER_NAME env var
+
+      - name: Verify missing env var error
+        run: |
+          if [[ "${{ steps.missing-env-test.outcome }}" == "failure" ]]; then
+            echo "✅ Missing env var validation worked as expected"
+          else
+            echo "❌ Missing env var validation failed - should have errored"
+            exit 1
+          fi

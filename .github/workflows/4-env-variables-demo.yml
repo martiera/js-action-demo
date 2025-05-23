@@ -1,0 +1,74 @@
+name: Environment Variables Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      custom-greeting:
+        description: 'Custom greeting format'
+        required: false
+        default: 'Greetings {name} from {repo} by {owner} on {date}!'
+      custom-name:
+        description: 'Custom name to greet'
+        required: false
+        default: 'GitHub User'
+
+jobs:
+  demo-env-variables:
+    runs-on: ubuntu-latest
+    name: Demo different environment variable configurations
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      # Standard input usage for comparison
+      - name: Standard Input Usage
+        id: standard-input
+        uses: ./
+        with:
+          user-name: ${{ github.actor }}
+
+      # Environment variables with default format
+      - name: Env Vars with Default Format
+        id: env-default-format
+        uses: ./
+        with:
+          use-env-vars: 'true'
+        env:
+          USER_NAME: ${{ github.actor }}
+
+      # Environment variables with custom format
+      - name: Env Vars with Custom Format
+        id: env-custom-format
+        uses: ./
+        with:
+          use-env-vars: 'true'
+        env:
+          USER_NAME: ${{ github.actor }}
+          GREETING_FORMAT: 'Welcome {name}! You are in the {repo} repository owned by {owner}.'
+
+      # Environment variables with workflow dispatch inputs
+      - name: Env Vars with Workflow Dispatch Input
+        id: env-workflow-input
+        uses: ./
+        with:
+          use-env-vars: 'true'
+        env:
+          USER_NAME: ${{ inputs.custom-name }}
+          GREETING_FORMAT: ${{ inputs.custom-greeting }}
+
+      # Display all results
+      - name: Show All Results
+        run: |
+          echo "Standard Input: ${{ steps.standard-input.outputs.greeting }}"
+          echo "Env Default Format: ${{ steps.env-default-format.outputs.greeting }}"
+          echo "Env Custom Format: ${{ steps.env-custom-format.outputs.greeting }}"
+          echo "Workflow Dispatch Input: ${{ steps.env-workflow-input.outputs.greeting }}"

@@ -1,5 +1,5 @@
 name: 'Action JS Template'
-description: 'A javascript Action template.'
+description: 'A javascript Action template with environment variable support and configurable greetings.'
 author: '@renan-alm'
 
 branding:
@@ -9,14 +9,23 @@ branding:
 
 inputs:
   user-name:
-    description: 'An example input'
-    required: true
+    description: 'Name to greet (used when use-env-vars is false)'
+    required: false
     default: 'Renan'
+  use-env-vars:
+    description: 'Whether to use environment variables instead of inputs'
+    required: false
+    default: 'false'
 
 outputs:
+  greeting:
+    description: 'The greeting message'
   time:
     description: 'The time the action ran'
 
 runs:
   using: 'node20'
-  main: 'dist/index.js'  # Changed from 'src/index.js'
+  main: 'dist/index.js'
+  env:
+    USER_NAME: ''
+    GREETING_FORMAT: 'Hello {name}! Welcome to {repo} by {owner} on {date} at {time}'
