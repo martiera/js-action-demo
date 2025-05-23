@@ -55,7 +55,7 @@ The following variables can be used in the `GREETING_FORMAT`:
 ```yaml
 steps:
   - name: Greeting Action
-    uses: renan-alm/js-action-demo@v0.4.0
+    uses: renan-alm/js-action-demo@v0.5.0
     id: hello
     with:
       user-name: 'Your Name'
@@ -71,7 +71,7 @@ steps:
 ```yaml
 steps:
   - name: Greeting Action with Environment Variables
-    uses: renan-alm/js-action-demo@v0.4.0
+    uses: renan-alm/js-action-demo@v0.5.0
     id: hello
     with:
       use-env-vars: 'true'

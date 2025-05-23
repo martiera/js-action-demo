@@ -8,6 +8,16 @@
 
 # Changelog
 
+## v0.5.0
+
+`2025.05.23`
+
+- 🚀 Added support for environment variables
+- 🚀 Made greeting format configurable
+- 🔒 Added input validation and error handling
+- 🐞 Fixed environment variable declaration in action.yml
+- 🧪 Added matrix strategy testing across multiple Node.js versions
+
 ## v0.4.0
 
 `2025.05.15`

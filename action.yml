@@ -26,6 +26,3 @@ outputs:
 runs:
   using: 'node20'
   main: 'dist/index.js'
-  env:
-    USER_NAME: ''
-    GREETING_FORMAT: 'Hello {name}! Welcome to {repo} by {owner} on {date} at {time}'
