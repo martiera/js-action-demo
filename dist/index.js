@@ -31858,7 +31858,7 @@ try {
     }
 
     // Get greeting format from env var or use default
-    const greetingFormat = process.env.GREETING_FORMAT || 'Hello {name}!';
+    const greetingFormat = process.env.GREETING_FORMAT || 'Hello {name}! Welcome to {repo} by {owner} on {date} at {time}';
     
     // Apply greeting format
     const contextVariables = {
